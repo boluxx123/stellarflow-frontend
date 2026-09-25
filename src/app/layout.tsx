@@ -24,6 +24,28 @@ import { PushNotificationRoot } from "@/components/notifications";
 import { RpcFailoverMonitor } from "./components/providers/RpcFailoverMonitor";
 import { CommandPalette } from "@/components/command-palette";
 
+/**
+ * iOS startup images (`apple-touch-startup-image`).
+ *
+ * iOS matches startup images with a media query per device resolution, so each
+ * entry maps to a file in `public/` produced by `scripts/generate-pwa-icons.js`
+ * — keep both lists in sync when adding a device.
+ */
+const APPLE_SPLASH_SCREENS = [
+  // iPhone
+  { file: "apple-splash-1290-2796.png", width: 430, height: 932, dpr: 3 },
+  { file: "apple-splash-1179-2556.png", width: 393, height: 852, dpr: 3 },
+  { file: "apple-splash-1284-2778.png", width: 428, height: 926, dpr: 3 },
+  { file: "apple-splash-1170-2532.png", width: 390, height: 844, dpr: 3 },
+  { file: "apple-splash-1125-2436.png", width: 375, height: 812, dpr: 3 },
+  { file: "apple-splash-828-1792.png", width: 414, height: 896, dpr: 2 },
+  { file: "apple-splash-750-1334.png", width: 375, height: 667, dpr: 2 },
+  // iPad
+  { file: "apple-splash-2048-2732.png", width: 1024, height: 1366, dpr: 2 },
+  { file: "apple-splash-1668-2388.png", width: 834, height: 1194, dpr: 2 },
+  { file: "apple-splash-1536-2048.png", width: 768, height: 1024, dpr: 2 },
+];
+
 export const metadata: Metadata = {
   title: "StellarFlow Network Dashboard",
   description:
@@ -32,11 +54,13 @@ export const metadata: Metadata = {
   themeColor: "#39ff14",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    // Translucent status bar so the app background shows through on iOS.
+    statusBarStyle: "black-translucent",
     title: "StellarFlow",
   },
   icons: {
-    apple: "/icon-192.svg",
+    // iOS ignores SVG apple-touch-icons, so point it at the 180×180 PNG.
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },
   other: {
     "mobile-web-app-capable": "yes",
@@ -95,12 +119,21 @@ export default async function RootLayout({
           type="image/svg+xml"
           fetchPriority="low"
         />
-        {/* PWA: apple-touch-icon for iOS home-screen bookmarks */}
+        {/* PWA: apple-touch-icon + iOS startup images for home-screen installs */}
         <link
           rel="apple-touch-icon"
-          href="/icon-192.svg"
-          sizes="192x192"
+          href="/apple-touch-icon.png"
+          sizes="180x180"
+          type="image/png"
         />
+        {APPLE_SPLASH_SCREENS.map(({ file, width, height, dpr }) => (
+          <link
+            key={file}
+            rel="apple-touch-startup-image"
+            href={`/${file}`}
+            media={`(device-width: ${width}px) and (device-height: ${height}px) and (-webkit-device-pixel-ratio: ${dpr}) and (orientation: portrait)`}
+          />
+        ))}
         <Script
           id="polyfill-loader"
           nonce={nonce}
